@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>忍術性質変化バトル Ver.43</title>
+<title>忍術性質変化バトル Ver.44</title>
 <link href="https://fonts.googleapis.com/css2?family=Reggae+One&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -21,19 +21,13 @@
     .particle { position: absolute; border-radius: 50%; opacity: 0.6; animation: float-up linear infinite; }
     @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
 
-    /* メニュー画面 & ランク表示 */
+    /* メニュー & ランク */
     #menu-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
     #menu-screen h1 { font-size: 3rem; color: var(--gold); text-shadow: 0 0 15px #ff8c00; margin-bottom: 10px; }
-    
-    /* ランク表示エリア */
-    #rank-info {
-        border: 2px solid var(--gold); border-radius: 10px; padding: 15px 30px;
-        margin-bottom: 30px; background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-    }
+    #rank-info { border: 2px solid var(--gold); border-radius: 10px; padding: 15px 30px; margin-bottom: 30px; background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
     #rank-title { font-size: 1.5rem; color: #aaa; }
     #rank-name { font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 10px var(--gold); margin: 5px 0; }
     #rank-stats { font-size: 1rem; color: #fff; }
-
     .btn-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
     .mode-btn { width: 300px; padding: 15px; font-size: 1.1rem; background: rgba(255,255,255,0.05); color: #888; border: 2px solid #444; border-radius: 4px; cursor: pointer; font-family: 'Reggae One'; transition: 0.3s; }
     .mode-btn.selected { color: var(--gold); border-color: var(--gold); background: rgba(255,215,0,0.1); box-shadow: 0 0 10px var(--gold); transform: scale(1.05); }
@@ -55,7 +49,7 @@
     #battle-center { z-index: 50; height: 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     #score-display { font-size: 2rem; color: #fff; text-shadow: 0 0 10px #000; margin-bottom: 10px; }
 
-    /* --- 演出レイヤー & 属性別エフェクト --- */
+    /* 演出レイヤー */
     #anim-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; display: flex; align-items: center; justify-content: center; }
     .clash-container { position: absolute; display: flex; gap: 5px; padding: 5px; border-radius: 10px; background: rgba(0,0,0,0.5); opacity: 0; transition: filter 0.2s; }
     .clash-img { width: 100px; height: 140px; object-fit: cover; border: 3px solid #fff; border-radius: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
@@ -64,44 +58,73 @@
     @keyframes p1-enter { 0%{transform:translateY(100vh) scale(0.5); opacity:0;} 60%{transform:translateY(60px) scale(1.2); opacity:1;} 100%{transform:translateY(80px) scale(1); opacity:1;} }
     @keyframes p2-enter { 0%{transform:translateY(-100vh) rotate(180deg) scale(0.5); opacity:0;} 60%{transform:translateY(-60px) rotate(180deg) scale(1.2); opacity:1;} 100%{transform:translateY(-80px) rotate(180deg) scale(1); opacity:1;} }
 
-    /* 勝者の押し込み */
-    @keyframes win-push-up { to{transform:translateY(-50px) scale(1.3); filter:brightness(1.5);} }
-    @keyframes win-push-down { to{transform:translateY(50px) rotate(180deg) scale(1.3); filter:brightness(1.5);} }
+    /* 勝者のアクション (押し込み) */
+    @keyframes win-push-up { from{transform:translateY(80px) scale(1);} to{transform:translateY(-50px) scale(1.3); filter:brightness(1.5);} }
+    @keyframes win-push-down { from{transform:translateY(-80px) rotate(180deg) scale(1);} to{transform:translateY(50px) rotate(180deg) scale(1.3); filter:brightness(1.5);} }
 
-    /* --- 五大性質フィニッシュ演出 --- */
-    /* 1. 火遁（燃え尽きる） */
-    .effect-fire { animation: burn-out 0.8s forwards !important; }
-    @keyframes burn-out { 
-        0% { filter: sepia(1) saturate(5) hue-rotate(-50deg) contrast(2); }
-        50% { transform: scale(1.1); opacity: 0.8; filter: sepia(1) saturate(5) hue-rotate(-50deg); }
-        100% { transform: scale(0) translateY(-100px); opacity: 0; filter: brightness(0); }
-    }
-    /* 2. 水遁（水圧で消える） */
-    .effect-water { animation: drown 0.8s forwards !important; }
-    @keyframes drown { 
-        0% { filter: blur(0px) hue-rotate(180deg); }
-        100% { transform: scaleY(0.1) scaleX(1.5); filter: blur(10px) hue-rotate(180deg) opacity(0); }
-    }
-    /* 3. 雷遁（感電・点滅） */
-    .effect-thunder { animation: shock 0.6s forwards !important; }
-    @keyframes shock { 
-        0%, 20%, 40%, 60% { transform: translateX(-10px) skewX(20deg); filter: brightness(3) invert(1); }
-        10%, 30%, 50%, 70% { transform: translateX(10px) skewX(-20deg); filter: brightness(3) invert(0); }
-        100% { transform: scale(0); opacity: 0; }
-    }
-    /* 4. 土遁（押しつぶし） */
-    .effect-earth { animation: crush 0.6s forwards !important; }
-    @keyframes crush { 
-        0% { transform: translateY(0); }
-        100% { transform: translateY(200px) scaleY(0.1); filter: grayscale(1) brightness(0.2); opacity: 0; }
-    }
-    /* 5. 風遁（吹き飛ばし） */
-    .effect-wind { animation: blast 0.8s forwards !important; }
-    @keyframes blast { 
-        0% { transform: rotate(0); }
-        100% { transform: translateY(-100vh) rotate(1080deg) scale(0.2); opacity: 0; }
-    }
+    /* --- 五大性質フィニッシュ・キーフレーム --- */
     
+    /* 1. 火: 燃え尽きる (P2用) */
+    @keyframes burn-out-p2 { 
+        0% { transform:translateY(-80px) rotate(180deg) scale(1); filter:sepia(1) saturate(5) hue-rotate(-50deg); }
+        40% { transform:translateY(-80px) rotate(180deg) scale(1.1); opacity:1; filter:sepia(1) saturate(5) hue-rotate(-50deg) brightness(2); }
+        100% { transform:translateY(-150px) rotate(180deg) scale(0.5); opacity:0; filter:brightness(0); }
+    }
+    /* 火: (P1用) */
+    @keyframes burn-out-p1 { 
+        0% { transform:translateY(80px) scale(1); filter:sepia(1) saturate(5) hue-rotate(-50deg); }
+        40% { transform:translateY(80px) scale(1.1); opacity:1; filter:sepia(1) saturate(5) hue-rotate(-50deg) brightness(2); }
+        100% { transform:translateY(150px) scale(0.5); opacity:0; filter:brightness(0); }
+    }
+
+    /* 2. 水: 溺れて消える (P2用) */
+    @keyframes drown-p2 {
+        0% { transform:translateY(-80px) rotate(180deg) scale(1); filter:hue-rotate(180deg); }
+        100% { transform:translateY(-80px) rotate(180deg) scale(1.5, 0.2); filter:hue-rotate(180deg) blur(10px); opacity:0; }
+    }
+    /* 水: (P1用) */
+    @keyframes drown-p1 {
+        0% { transform:translateY(80px) scale(1); filter:hue-rotate(180deg); }
+        100% { transform:translateY(80px) scale(1.5, 0.2); filter:hue-rotate(180deg) blur(10px); opacity:0; }
+    }
+
+    /* 3. 雷: 感電消失 (P2用) */
+    @keyframes shock-p2 {
+        0% { transform:translateY(-80px) rotate(180deg); filter:brightness(2) invert(1); }
+        20% { transform:translateY(-80px) rotate(190deg); filter:brightness(2) invert(0); }
+        40% { transform:translateY(-80px) rotate(170deg); filter:brightness(2) invert(1); }
+        100% { transform:translateY(-80px) rotate(180deg) scale(0); opacity:0; }
+    }
+    /* 雷: (P1用) */
+    @keyframes shock-p1 {
+        0% { transform:translateY(80px); filter:brightness(2) invert(1); }
+        20% { transform:translateY(80px) rotate(10deg); filter:brightness(2) invert(0); }
+        40% { transform:translateY(80px) rotate(-10deg); filter:brightness(2) invert(1); }
+        100% { transform:translateY(80px) scale(0); opacity:0; }
+    }
+
+    /* 4. 土: 崩落 (P2用) */
+    @keyframes crush-p2 {
+        0% { transform:translateY(-80px) rotate(180deg); filter:grayscale(1); }
+        100% { transform:translateY(-300px) rotate(180deg) scaleY(0.5); opacity:0; }
+    }
+    /* 土: (P1用) */
+    @keyframes crush-p1 {
+        0% { transform:translateY(80px); filter:grayscale(1); }
+        100% { transform:translateY(300px) scaleY(0.5); opacity:0; }
+    }
+
+    /* 5. 風: 吹き飛ばし (P2用) */
+    @keyframes blast-p2 {
+        0% { transform:translateY(-80px) rotate(180deg); }
+        100% { transform:translateY(-100vh) rotate(1080deg) scale(0.2); opacity:0; }
+    }
+    /* 風: (P1用) */
+    @keyframes blast-p1 {
+        0% { transform:translateY(80px); }
+        100% { transform:translateY(100vh) rotate(900deg) scale(0.2); opacity:0; }
+    }
+
     /* 引き分け（弾き飛ばし） */
     @keyframes repel-p1 { from{transform:translateY(80px) scale(1);} to{transform:translateY(300px) rotate(-45deg) scale(0.8); opacity:0;} }
     @keyframes repel-p2 { from{transform:translateY(-80px) rotate(180deg) scale(1);} to{transform:translateY(-300px) rotate(225deg) scale(0.8); opacity:0;} }
@@ -124,13 +147,11 @@
 <div id="bg-container"></div>
 <div id="menu-screen">
     <h1>忍術性質変化バトル</h1>
-    
     <div id="rank-info">
         <div id="rank-title">忍者ランク</div>
         <div id="rank-name">アカデミー生</div>
         <div id="rank-stats">戦歴: 0勝 / 0戦</div>
     </div>
-
     <div class="btn-group">
         <button id="m-norm" class="mode-btn selected" onclick="selMode('N')">ノーマル (3戦 / 2本先取)</button>
         <button id="m-adv" class="mode-btn" onclick="selMode('A')">アドバンス (5戦 / 弾切 / 2本先取)</button>
@@ -180,7 +201,7 @@ const typeOrd={'火':1,'水':2,'土':3,'風':4,'雷':5}, types=['火','水','土
 const rel={'火':'風','風':'雷','雷':'土','土':'水','水':'火'};
 let hands, scores, selected, confirmed, turn, gMode='N', pMode='C', p1D=[], p2D=[], firstPt=null, bannedStr=null, historyLog=[];
 
-// --- セーブデータ・ランク管理 ---
+// ランク管理
 const RANKS = [
     { name: "アカデミー生", wins: 0 },
     { name: "下忍", wins: 1 },
@@ -196,33 +217,19 @@ let playerData = { wins: 0, matches: 0 };
 window.onload = function() {
     loadData();
     updateRankUI();
-    
-    // 背景パーティクル
     const bg = document.getElementById('bg-container');
     for(let i=0; i<30; i++){
-        const p = document.createElement('div');
-        p.className = 'particle'; const size = Math.random()*5+2;
-        p.style.width=size+'px'; p.style.height=size+'px';
-        p.style.background=(Math.random()>0.5)?'#ff4500':'#00bfff';
-        p.style.left=Math.random()*100+'%';
-        p.style.animationDuration=(Math.random()*10+5)+'s';
-        p.style.animationDelay=Math.random()*5+'s';
-        bg.appendChild(p);
+        const p = document.createElement('div'); p.className = 'particle'; const size = Math.random()*5+2; p.style.width=size+'px'; p.style.height=size+'px';
+        p.style.background=(Math.random()>0.5)?'#ff4500':'#00bfff'; p.style.left=Math.random()*100+'%';
+        p.style.animationDuration=(Math.random()*10+5)+'s'; p.style.animationDelay=Math.random()*5+'s'; bg.appendChild(p);
     }
 };
 
-function loadData() {
-    const d = localStorage.getItem('ninjaBattleData');
-    if(d) playerData = JSON.parse(d);
-}
-function saveData() {
-    localStorage.setItem('ninjaBattleData', JSON.stringify(playerData));
-}
+function loadData() { const d = localStorage.getItem('ninjaBattleData'); if(d) playerData = JSON.parse(d); }
+function saveData() { localStorage.setItem('ninjaBattleData', JSON.stringify(playerData)); }
 function updateRankUI() {
     let currentRank = RANKS[0].name;
-    for(let r of RANKS) {
-        if(playerData.wins >= r.wins) currentRank = r.name;
-    }
+    for(let r of RANKS) { if(playerData.wins >= r.wins) currentRank = r.name; }
     document.getElementById('rank-name').innerText = currentRank;
     document.getElementById('rank-stats').innerText = `戦歴: ${playerData.wins}勝 / ${playerData.matches}戦`;
 }
@@ -274,14 +281,19 @@ function createClashContainer(cards, color){
     return box;
 }
 
-// 勝利手の属性に基づいてエフェクトクラスを返す
-function getWinEffect(cards) {
-    if (cards.includes('火')) return 'effect-fire';
-    if (cards.includes('水')) return 'effect-water';
-    if (cards.includes('雷')) return 'effect-thunder';
-    if (cards.includes('土')) return 'effect-earth';
-    if (cards.includes('風')) return 'effect-wind';
-    return 'effect-fire'; // デフォルト
+// 勝利手の属性に基づいてアニメーション名を返す (JSオブジェクトマッピング)
+function getFinishAnim(cards, isWinnerP1) {
+    let type = cards[0]; // 基本属性
+    if(cards.includes('火')) type='火'; // 優先順位
+    if(cards.includes('風') && cards.length===2) type='水'; // 氷遁は水エフェクトとするか？一旦構成要素優先
+    
+    // アニメーション名マップ
+    const p1Map = { '火':'burn-out-p1', '水':'drown-p1', '雷':'shock-p1', '土':'crush-p1', '風':'blast-p1' };
+    const p2Map = { '火':'burn-out-p2', '水':'drown-p2', '雷':'shock-p2', '土':'crush-p2', '風':'blast-p2' };
+    
+    // 勝者がP1なら、敗者(P2)に適用するアニメは p2Map から選ぶ
+    if(isWinnerP1) return p2Map[type] || p2Map['火'];
+    else return p1Map[type] || p1Map['火'];
 }
 
 function resolveBattle(){
@@ -295,7 +307,6 @@ function resolveBattle(){
     const c1 = layer.children[0];
     const c2 = layer.children[1];
 
-    // アニメーションリセット
     c1.style.animation = 'none'; c1.offsetHeight; 
     c2.style.animation = 'none'; c2.offsetHeight;
     
@@ -304,20 +315,24 @@ function resolveBattle(){
         scores[win]++; if(firstPt===null) firstPt=win;
         resText.innerText = (win===1)?"壱の勝!":"弐の勝!"; resText.style.color = (win===1)?"#ff4500":"#00bfff"; logRes = `P${win} 勝利`;
         
-        // ★属性別フィニッシュ演出の適用★
+        // ★属性別フィニッシュ (JSでstyle.animation指定) ★
         if(win===1){
-            const effect = getWinEffect(m1);
-            c1.style.animation = 'win-push-up 0.4s ease-out forwards';
-            c2.classList.add(effect); // 負けた方にエフェクト付与
-            // ※CSSで .effect-xxx { animation: ... !important } が発動
+            // P1勝利: c1が押し込み、c2が属性で散る
+            c1.style.animation = 'win-push-up 0.5s ease-out forwards';
+            const animName = getFinishAnim(m1, true); // 勝った手のエフェクトを負けた方にかける
+            c2.style.animation = `${animName} 0.8s forwards`;
         } else {
-            const effect = getWinEffect(m2);
-            c2.style.animation = 'win-push-down 0.4s ease-out forwards';
-            c1.classList.add(effect);
+            // P2勝利: c2が押し込み、c1が属性で散る
+            c2.style.animation = 'win-push-down 0.5s ease-out forwards';
+            const animName = getFinishAnim(m2, false);
+            c1.style.animation = `${animName} 0.8s forwards`;
         }
         nextAction = () => consumeCards(m1, m2);
     } else {
-        c1.style.animation = 'repel-p1 0.5s ease-out forwards'; c2.style.animation = 'repel-p2 0.5s ease-out forwards';
+        // 引き分け
+        c1.style.animation = 'repel-p1 0.5s ease-out forwards'; 
+        c2.style.animation = 'repel-p2 0.5s ease-out forwards';
+        
         if (s1 === s2) { 
             if (gMode === 'N') {
                 if (turn === 3) { resText.innerText = "相殺(終)"; logRes="引分(終)"; nextAction = () => consumeCards(m1, m2); }
@@ -383,9 +398,7 @@ function judgeFinal(){
         <button class="mode-btn" onclick="showHistory()" style="margin-top:10px;">戦歴を見る</button>
     `;
 }
-function returnToMenu(){
-    location.reload(); // ランク反映のためリロード
-}
+function returnToMenu(){ location.reload(); }
 function lockArea(p){ document.getElementById(`p${p}-area`).style.filter='grayscale(100%) brightness(0.3)'; document.getElementById(`p${p}-btn`).style.pointerEvents='none'; }
 function unlockArea(p){ document.getElementById(`p${p}-area`).style.filter='none'; document.getElementById(`p${p}-btn`).style.pointerEvents='auto'; }
 </script>
