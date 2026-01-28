@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>忍術性質変化バトル Ver.49</title>
+<title>忍術性質変化バトル Ver.50</title>
 <link href="https://fonts.googleapis.com/css2?family=Reggae+One&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -17,139 +17,89 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* --- 背景システム --- */
+    /* 背景 */
     #bg-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; transition: background 0.5s; }
     .particle { position: absolute; border-radius: 50%; opacity: 0.6; animation: float-up linear infinite; pointer-events: none; }
     @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
 
     /* 背景バリエーション */
-    /* 1. 通常 */
     .bg-normal { background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
-    /* 2. 木ノ葉 */
     .bg-leaf { background: radial-gradient(circle at center, #1e3c00 0%, #0a1400 100%); }
-    .bg-leaf .particle { background: #4caf50 !important; border-radius: 0 !important; width: 8px !important; height: 8px !important; transform: rotate(45deg); }
-    /* 3. 終末の谷 */
+    .bg-leaf .particle { background: #4caf50 !important; width: 8px !important; height: 8px !important; transform: rotate(45deg); border-radius: 0 !important; }
     .bg-valley { background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); }
     .bg-valley .particle { background: #89f7fe !important; opacity: 0.4; animation-duration: 3s !important; }
-    /* 4. 月読 */
     .bg-tsuku { background: radial-gradient(circle, #500000 0%, #000 100%); }
     .bg-tsuku::before { content: ""; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.5) 3px); pointer-events: none; }
     .bg-tsuku .particle { background: #ff0000 !important; box-shadow: 0 0 5px red; }
-    /* 5. 大戦 */
     .bg-war { background: linear-gradient(to bottom, #3e3e3e, #5a4a3a); }
     .bg-war .particle { background: #d7c49e !important; width: 4px !important; }
 
-
-    /* --- タイトル画面 (Cool Design) --- */
+    /* --- タイトル画面 --- */
     #title-screen { 
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0, 0, 0, 0.6); z-index: 3000; 
+        background: rgba(0, 0, 0, 0.85); z-index: 3000; 
         display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        transition: opacity 0.5s; backdrop-filter: blur(2px);
+        transition: opacity 0.5s; overflow-y: auto; padding: 20px 0;
     }
-    
-    .main-logo {
-        font-size: 3.5rem; color: var(--gold); 
-        text-shadow: 0 0 10px #ff8c00, 3px 3px 0 #8b0000; 
-        margin-bottom: 10px; line-height: 1.2; letter-spacing: 5px;
-        transform: scale(1); animation: logo-breath 3s infinite ease-in-out;
-    }
-    .sub-logo { font-size: 1.2rem; color: #ccc; letter-spacing: 8px; margin-bottom: 30px; text-transform: uppercase; }
+    .main-logo { font-size: 3.5rem; color: var(--gold); text-shadow: 0 0 10px #ff8c00; margin-bottom: 10px; line-height: 1.2; letter-spacing: 5px; animation: logo-breath 3s infinite ease-in-out; }
+    .sub-logo { font-size: 1.2rem; color: #ccc; letter-spacing: 8px; margin-bottom: 20px; text-transform: uppercase; }
+    @keyframes logo-breath { 0%,100%{transform:scale(1); text-shadow:0 0 10px #ff8c00;} 50%{transform:scale(1.05); text-shadow:0 0 25px var(--gold);} }
 
-    @keyframes logo-breath { 0%,100%{transform:scale(1); text-shadow:0 0 10px #ff8c00, 3px 3px 0 #8b0000;} 50%{transform:scale(1.05); text-shadow:0 0 25px var(--gold), 3px 3px 0 #8b0000;} }
-
-    /* ランク表示 (シンプル化) */
-    #rank-badge {
-        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.8), transparent);
-        padding: 5px 40px; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold);
-        margin-bottom: 40px; text-align: center;
-    }
+    #rank-badge { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.8), transparent); padding: 5px 40px; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); margin-bottom: 30px; text-align: center; }
     #rank-val { font-size: 1.5rem; color: var(--gold); }
     #rank-rec { font-size: 0.9rem; color: #aaa; }
 
-    /* メインボタン群 */
-    .main-btn {
-        width: 260px; padding: 18px; font-size: 1.4rem; color: #000; 
-        background: var(--gold); border: none; border-radius: 50px; 
-        cursor: pointer; font-family: 'Reggae One'; margin-bottom: 20px;
-        box-shadow: 0 0 20px rgba(255,215,0,0.5); position: relative; overflow: hidden;
-        transition: transform 0.1s;
-    }
+    .main-btn { width: 260px; padding: 18px; font-size: 1.4rem; color: #000; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-family: 'Reggae One'; margin-bottom: 20px; box-shadow: 0 0 20px rgba(255,215,0,0.5); position: relative; overflow: hidden; transition: transform 0.1s; }
     .main-btn:active { transform: scale(0.95); }
-    .main-btn::after {
-        content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-        background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
-        transform: rotate(45deg) translate(-150%, 0); animation: shine-btn 3s infinite;
-    }
-    @keyframes shine-btn { 0%{transform:rotate(45deg) translate(-150%,0);} 20%{transform:rotate(45deg) translate(150%,0);} 100%{transform:rotate(45deg) translate(150%,0);} }
-
-    .sub-btn {
-        width: 200px; padding: 10px; font-size: 1rem; color: #ddd;
-        background: rgba(255,255,255,0.1); border: 1px solid #666; border-radius: 30px;
-        cursor: pointer; font-family: 'Reggae One'; margin-bottom: 10px; transition: 0.3s;
-    }
+    .sub-btn { width: 200px; padding: 10px; font-size: 1rem; color: #ddd; background: rgba(255,255,255,0.1); border: 1px solid #666; border-radius: 30px; cursor: pointer; font-family: 'Reggae One'; margin-bottom: 10px; transition: 0.3s; }
     .sub-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
 
-    /* --- 統合設定メニュー (Modal) --- */
-    #settings-modal {
+    /* --- 結果画面 (新規追加) --- */
+    #result-screen {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.9); z-index: 3200;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.5s;
+    }
+    #res-title { font-size: 3rem; color: var(--gold); margin-bottom: 10px; text-shadow: 0 0 20px #ff8c00; }
+    #res-reason { font-size: 1.2rem; color: #ccc; margin-bottom: 30px; }
+    #res-scores { font-size: 1.5rem; color: #fff; margin-bottom: 40px; border: 1px solid #555; padding: 20px; border-radius: 10px; background: rgba(255,255,255,0.05); }
+
+    /* --- 設定・モーダル --- */
+    #settings-modal, #mode-select-modal, #history-modal {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.95); z-index: 4000;
-        display: none; flex-direction: column; align-items: center; justify-content: flex-start;
-        padding-top: 40px; overflow-y: auto;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
     }
-    .settings-header { font-size: 2rem; color: var(--gold); margin-bottom: 30px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; width: 80%; text-align: center; }
+    #settings-modal { justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
     
+    .settings-header { font-size: 2rem; color: var(--gold); margin-bottom: 30px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; width: 80%; text-align: center; }
     .setting-group { width: 90%; max-width: 400px; margin-bottom: 30px; }
     .setting-label { font-size: 1.1rem; color: #fff; margin-bottom: 10px; border-left: 4px solid var(--p1-color); padding-left: 10px; text-align: left; }
     .setting-options { display: flex; flex-wrap: wrap; gap: 8px; }
-    
-    .opt-btn {
-        flex: 1; min-width: 80px; padding: 10px; font-size: 0.9rem;
-        background: #222; color: #888; border: 1px solid #444; border-radius: 5px;
-        cursor: pointer; font-family: 'Reggae One'; transition: 0.2s;
-    }
-    .opt-btn.active { background: rgba(255,215,0,0.2); color: var(--gold); border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
-    
-    .close-settings-btn {
-        margin-top: 20px; width: 200px; padding: 12px; font-size: 1.2rem;
-        background: #333; color: #fff; border: 1px solid #fff; border-radius: 30px;
-        cursor: pointer; font-family: 'Reggae One'; margin-bottom: 50px;
-    }
+    .opt-btn { flex: 1; min-width: 80px; padding: 10px; font-size: 0.9rem; background: #222; color: #888; border: 1px solid #444; border-radius: 5px; cursor: pointer; font-family: 'Reggae One'; }
+    .opt-btn.active { background: rgba(255,215,0,0.2); color: var(--gold); border-color: var(--gold); }
+    .close-btn { margin-top: 20px; width: 180px; padding: 12px; font-size: 1.2rem; background: #333; color: #fff; border: 1px solid #fff; border-radius: 30px; cursor: pointer; font-family: 'Reggae One'; }
 
-    /* --- 対戦形式選択モーダル --- */
-    #mode-select-modal {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); z-index: 3500;
-        display: none; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .mode-card {
-        width: 280px; padding: 20px; margin: 10px; background: rgba(0,0,0,0.8);
-        border: 2px solid #555; border-radius: 10px; text-align: center; cursor: pointer;
-        transition: 0.3s;
-    }
+    .mode-card { width: 280px; padding: 20px; margin: 10px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
     .mode-card:hover { border-color: var(--gold); transform: scale(1.05); }
     .mode-title { font-size: 1.5rem; color: #fff; margin-bottom: 5px; }
     .mode-desc { font-size: 0.9rem; color: #aaa; }
 
-
-    /* --- ゲームエリア (共通) --- */
+    /* --- ゲームエリア --- */
     .player-area { height: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 10; }
     #p2-area { transform: rotate(180deg); border-bottom: 1px solid rgba(255,255,255,0.1); }
     #p1-area { border-top: 1px solid rgba(255,255,255,0.1); }
     .hand { display: flex; justify-content: center; gap: 6px; min-height: 110px; width: 100%; align-items: flex-end; perspective: 1000px; }
 
-    .card {
-        width: 68px; height: 98px; border-radius: 6px; cursor: pointer;
-        position: relative; overflow: hidden; background: #222; border: 2px solid #555;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;
-    }
+    .card { width: 68px; height: 98px; border-radius: 6px; cursor: pointer; position: relative; overflow: hidden; background: #222; border: 2px solid #555; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
     .card-inner { width: 100%; height: 100%; position: relative; z-index: 1; }
     .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
     .card-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; padding: 2px 0; pointer-events: none; }
     .card.selected { transform: translateY(-25px) scale(1.1); border-color: var(--gold); box-shadow: 0 0 15px var(--gold); z-index: 100; }
     .card.selected img { opacity: 1; filter: brightness(1.1); }
 
-    /* レアリティ演出 */
+    /* レアリティ */
     .card.rank-silver { border-color: #c0c0c0; box-shadow: 0 0 10px rgba(192,192,192,0.5); }
     .card.rank-silver::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.5) 50%, transparent 55%); animation: shine 3s infinite; pointer-events: none; z-index: 2; }
     .card.rank-rainbow { border-color: #fff; animation: rainbow-border 2s linear infinite; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
@@ -168,7 +118,6 @@
     .clash-container { position: absolute; display: flex; gap: 5px; padding: 5px; border-radius: 10px; background: rgba(0,0,0,0.5); opacity: 0; will-change: transform; }
     .clash-img { width: 100px; height: 140px; object-fit: cover; border: 3px solid #fff; border-radius: 5px; box-shadow: 0 0 25px rgba(0,0,0,0.8); }
 
-    /* アニメーション */
     .anim-p1-enter { animation: p1-enter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
     .anim-p2-enter { animation: p2-enter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
     @keyframes p1-enter { 0%{transform:translateY(100vh) scale(0.5); opacity:0;} 60%{transform:translateY(50px) scale(1.2); opacity:1;} 100%{transform:translateY(65px) scale(1); opacity:1;} }
@@ -179,6 +128,7 @@
     @keyframes p1-win { from{transform:translateY(65px) scale(1);} to{transform:translateY(-30px) scale(1.4); z-index:2100;} }
     @keyframes p2-win { from{transform:translateY(-65px) rotate(180deg) scale(1);} to{transform:translateY(30px) rotate(180deg) scale(1.4); z-index:2100;} }
 
+    /* 敗北エフェクト */
     .anim-lose-fire-p2 { animation: burn-p2 0.8s forwards; } .anim-lose-fire-p1 { animation: burn-p1 0.8s forwards; }
     @keyframes burn-p2 { 0%{transform:translateY(-65px) rotate(180deg); filter:sepia(1) saturate(5) hue-rotate(-50deg);} 100%{transform:translateY(-150px) rotate(180deg) scale(0.8); opacity:0; filter:brightness(0);} }
     @keyframes burn-p1 { 0%{transform:translateY(65px); filter:sepia(1) saturate(5) hue-rotate(-50deg);} 100%{transform:translateY(150px) scale(0.8); opacity:0; filter:brightness(0);} }
@@ -194,21 +144,18 @@
     .anim-lose-wind-p2 { animation: blast-p2 0.8s forwards; } .anim-lose-wind-p1 { animation: blast-p1 0.8s forwards; }
     @keyframes blast-p2 { 0%{transform:translateY(-65px) rotate(180deg);} 100%{transform:translateY(-100vh) rotate(720deg) scale(0); opacity:0;} }
     @keyframes blast-p1 { 0%{transform:translateY(65px);} 100%{transform:translateY(100vh) rotate(720deg) scale(0); opacity:0;} }
-    
     .anim-repel-p1 { animation: repel-p1 0.5s ease-out forwards; } .anim-repel-p2 { animation: repel-p2 0.5s ease-out forwards; }
-    @keyframes repel-p1 { from{transform:translateY(65px);} to{transform:translateY(300px) rotate(-45deg) scale(0.5); opacity:0;} }
-    @keyframes repel-p2 { from{transform:translateY(-65px) rotate(180deg);} to{transform:translateY(-300px) rotate(225deg) scale(0.5); opacity:0;} }
+    @keyframes repel-p1 { from{transform:translateY(65px);} to{transform:translateY(250px) rotate(-45deg) scale(0.5); opacity:0;} }
+    @keyframes repel-p2 { from{transform:translateY(-65px) rotate(180deg);} to{transform:translateY(-250px) rotate(225deg) scale(0.5); opacity:0;} }
 
     #result-text { position: absolute; font-size: 5rem; color: #fff; text-shadow: 0 0 20px var(--gold), 4px 4px 0 #000; opacity: 0; z-index: 2500; pointer-events: none; }
     @keyframes text-pop { 0%{transform:scale(0); opacity:0;} 50%{transform:scale(1.2); opacity:1;} 100%{transform:scale(1); opacity:1;} }
 
-    #history-btn { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); border: 1px solid #fff; color: #fff; padding: 5px 15px; border-radius: 20px; cursor: pointer; z-index: 1500; font-family: 'Reggae One'; font-size: 0.8rem; }
-    #history-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3500; display: none; flex-direction: column; align-items: center; padding-top: 40px; }
+    /* 履歴 */
     #history-content { width: 90%; max-width: 500px; height: 60%; overflow-y: auto; background: #222; border: 2px solid #555; border-radius: 10px; padding: 10px; }
     .history-row { display: flex; align-items: center; justify-content: space-between; background: #333; margin-bottom: 8px; padding: 5px; border-radius: 5px; font-size: 0.9rem; }
     .hist-cards { display: flex; gap: 2px; }
     .hist-img { width: 25px; height: 35px; object-fit: cover; border: 1px solid #777; }
-    .close-hist-btn { margin-top: 20px; padding: 10px 30px; background: #555; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
 
 </style>
 </head>
@@ -232,7 +179,6 @@
 
 <div id="settings-modal">
     <div class="settings-header">環境設定</div>
-
     <div class="setting-group">
         <div class="setting-label">任務難易度 (ルール)</div>
         <div class="setting-options">
@@ -240,7 +186,6 @@
             <button class="opt-btn" id="rule-adv" onclick="setRule('A')">上級<br>(5戦/弾切)</button>
         </div>
     </div>
-
     <div class="setting-group">
         <div class="setting-label">カード演出 (レアリティ)</div>
         <div class="setting-options">
@@ -249,7 +194,6 @@
             <button class="opt-btn" id="eff-rainbow" onclick="setEffect('rainbow')">虹<br>(50勝)</button>
         </div>
     </div>
-
     <div class="setting-group">
         <div class="setting-label">戦場 (背景)</div>
         <div class="setting-options" style="gap:10px;">
@@ -260,8 +204,7 @@
             <button class="opt-btn" id="bg-war" onclick="setBg('bg-war')">大戦</button>
         </div>
     </div>
-
-    <button class="close-settings-btn" onclick="closeSettings()">設定終了</button>
+    <button class="close-btn" onclick="closeSettings()">設定終了</button>
 </div>
 
 <div id="mode-select-modal">
@@ -273,18 +216,25 @@
         <div class="mode-title">対人演習</div>
         <div class="mode-desc">vs 友人と対戦 (2 Players)</div>
     </div>
-    <button class="sub-btn" onclick="closeModeSelect()" style="margin-top:20px">戻る</button>
+    <button class="close-btn" onclick="closeModeSelect()" style="margin-top:20px">戻る</button>
 </div>
 
+<div id="result-screen">
+    <div id="res-title">勝負あり</div>
+    <div id="res-reason">理由</div>
+    <div id="res-scores">P1: 0 - P2: 0</div>
+    <button class="main-btn" onclick="backToTitle()">タイトルへ戻る</button>
+</div>
+
+<div id="history-modal">
+    <h2 style="color:var(--gold);">対戦記録</h2>
+    <div id="history-content"></div>
+    <button class="close-btn" onclick="closeHistory()">閉じる</button>
+</div>
 
 <div id="anim-layer"></div>
 <div id="result-text"></div>
 <button id="history-btn" onclick="showHistory()" style="display:none;">戦歴</button>
-<div id="history-modal">
-    <h2 style="color:var(--gold);">対戦記録</h2>
-    <div id="history-content"></div>
-    <button class="close-hist-btn" onclick="closeHistory()">閉じる</button>
-</div>
 
 <div id="p2-area" class="player-area">
     <div id="p2-hand" class="hand"></div>
@@ -320,15 +270,12 @@ const RANKS = [
     { name: "特別上忍", wins: 7 }, { name: "上忍", wins: 15 }, { name: "暗部", wins: 30 },
     { name: "影", wins: 50 }, { name: "伝説の忍", wins: 100 }
 ];
-// 初期データ (リセット済み)
 let playerData = { wins: 0, matches: 0, effect: 'none', bg: 'bg-normal' };
 
 window.onload = function() {
     loadData();
     updateTitleRank();
     applySettingsToUI();
-    
-    // 背景初期化
     const bg = document.getElementById('bg-container');
     bg.className = playerData.bg || 'bg-normal';
     for(let i=0; i<30; i++){
@@ -339,16 +286,8 @@ window.onload = function() {
     }
 };
 
-function loadData() { 
-    const d = localStorage.getItem('ninjaBattleData'); 
-    if(d) {
-        playerData = JSON.parse(d);
-        if(!playerData.effect) playerData.effect = 'none';
-        if(!playerData.bg) playerData.bg = 'bg-normal';
-    }
-}
+function loadData() { const d = localStorage.getItem('ninjaBattleData'); if(d) { playerData = JSON.parse(d); if(!playerData.effect) playerData.effect = 'none'; if(!playerData.bg) playerData.bg = 'bg-normal'; } }
 function saveData() { localStorage.setItem('ninjaBattleData', JSON.stringify(playerData)); }
-
 function updateTitleRank() {
     let currentRank = RANKS[0].name;
     for(let r of RANKS) { if(playerData.wins >= r.wins) currentRank = r.name; }
@@ -356,46 +295,35 @@ function updateTitleRank() {
     document.getElementById('rank-rec').innerText = `${playerData.wins}勝 / ${playerData.matches}戦`;
 }
 
-// --- 設定関連 ---
+// UI & Modal Control
 function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; applySettingsToUI(); }
 function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 function openModeSelect() { document.getElementById('mode-select-modal').style.display = 'flex'; }
 function closeModeSelect() { document.getElementById('mode-select-modal').style.display = 'none'; }
+function showHistory(){ document.getElementById('history-modal').style.display = 'flex'; updateHistoryModal(); }
+function closeHistory(){ document.getElementById('history-modal').style.display = 'none'; }
 
 function applySettingsToUI() {
-    // ルール
     document.getElementById('rule-norm').className = (gMode==='N' ? 'opt-btn active' : 'opt-btn');
     document.getElementById('rule-adv').className = (gMode==='A' ? 'opt-btn active' : 'opt-btn');
-    // エフェクト
-    ['none','silver','rainbow'].forEach(e => {
-        document.getElementById(`eff-${e}`).className = (playerData.effect===e ? 'opt-btn active' : 'opt-btn');
-    });
-    // 背景
-    ['bg-normal','bg-leaf','bg-valley','bg-tsuku','bg-war'].forEach(b => {
-        document.getElementById(b).className = (playerData.bg===b ? 'opt-btn active' : 'opt-btn');
-    });
+    ['none','silver','rainbow'].forEach(e => { document.getElementById(`eff-${e}`).className = (playerData.effect===e ? 'opt-btn active' : 'opt-btn'); });
+    ['bg-normal','bg-leaf','bg-valley','bg-tsuku','bg-war'].forEach(b => { document.getElementById(b).className = (playerData.bg===b ? 'opt-btn active' : 'opt-btn'); });
 }
-
-function setRule(m) {
-    gMode = m;
-    applySettingsToUI();
-}
+function setRule(m) { gMode = m; applySettingsToUI(); }
 function setEffect(e) {
-    // ロック機能は解除して選択可能に
     if(e === 'silver' && playerData.wins < 15) { alert("15勝するまでロックされています"); return; }
     if(e === 'rainbow' && playerData.wins < 50) { alert("50勝するまでロックされています"); return; }
-    playerData.effect = e;
-    saveData();
-    applySettingsToUI();
+    playerData.effect = e; saveData(); applySettingsToUI();
 }
-function setBg(bgClass) {
-    playerData.bg = bgClass;
-    document.getElementById('bg-container').className = bgClass;
-    saveData();
-    applySettingsToUI();
+function setBg(bgClass) { playerData.bg = bgClass; document.getElementById('bg-container').className = bgClass; saveData(); applySettingsToUI(); }
+
+function getCardRankClass() {
+    if(playerData.effect === 'rainbow') return "rank-rainbow";
+    if(playerData.effect === 'silver') return "rank-silver";
+    return "";
 }
 
-// --- ゲーム開始 ---
+// Game Logic
 function selPlay(p){
     pMode = p;
     closeModeSelect();
@@ -403,15 +331,20 @@ function selPlay(p){
     setTimeout(()=>{ document.getElementById('title-screen').style.display='none'; }, 500);
     resetGameData();
 }
-
-function resetGameData(){ hands={1:[...types],2:[...types]}; scores={1:0,2:0}; selected={1:[],2:[]}; confirmed={1:!1,2:!1}; turn=1; firstPt=null; bannedStr=null; p1D=[]; p2D=[]; historyLog=[]; document.getElementById('p2-btn').style.visibility=(pMode==='C')?'hidden':'visible'; document.getElementById('history-btn').style.display='block'; updateScoreUI(); unlockArea(1); unlockArea(2); renderHands(); updateHistoryModal(); }
-function updateScoreUI(){ document.getElementById('s1').innerText = scores[1]; document.getElementById('s2').innerText = scores[2]; const max = (gMode==='N')?3:5; document.getElementById('status-msg').innerText = `第 ${turn} 戦目 (${max}戦勝負)`; }
-
-function getCardRankClass() {
-    if(playerData.effect === 'rainbow') return "rank-rainbow";
-    if(playerData.effect === 'silver') return "rank-silver";
-    return "";
+function backToTitle(){
+    const res = document.getElementById('result-screen');
+    res.style.opacity = '0';
+    setTimeout(() => {
+        res.style.display = 'none';
+        const title = document.getElementById('title-screen');
+        title.style.display = 'flex';
+        setTimeout(()=>title.style.opacity='1', 10);
+        updateTitleRank();
+    }, 500);
 }
+
+function resetGameData(){ hands={1:[...types],2:[...types]}; scores={1:0,2:0}; selected={1:[],2:[]}; confirmed={1:!1,2:!1}; turn=1; firstPt=null; bannedStr=null; p1D=[]; p2D=[]; historyLog=[]; document.getElementById('p2-btn').style.visibility=(pMode==='C')?'hidden':'visible'; document.getElementById('history-btn').style.display='block'; updateScoreUI(); unlockArea(1); unlockArea(2); renderHands(); }
+function updateScoreUI(){ document.getElementById('s1').innerText = scores[1]; document.getElementById('s2').innerText = scores[2]; const max = (gMode==='N')?3:5; document.getElementById('status-msg').innerText = `第 ${turn} 戦目 (${max}戦勝負)`; }
 
 function renderHands(){
     const rankClass = getCardRankClass();
@@ -510,10 +443,8 @@ function resolveBattle(){
             } else { resText.innerText = "相殺"; logRes="引分"; nextAction = () => consumeCards(m1, m2); }
         } else { resText.innerText = "相殺"; logRes="引分"; nextAction = () => consumeCards(m1, m2); }
     }
-    
     addHistory(turn, p1D, p2D, logRes);
     resText.style.animation = 'text-pop 0.5s forwards';
-
     setTimeout(() => {
         layer.innerHTML = ''; resText.style.opacity = '0'; resText.style.animation = 'none';
         document.getElementById('p1-hand').style.opacity='1'; document.getElementById('p2-hand').style.opacity='1'; document.getElementById('battle-center').style.opacity='1';
@@ -542,8 +473,7 @@ function updateHistoryModal(){
     });
     content.innerHTML = html;
 }
-function showHistory(){ document.getElementById('history-modal').style.display = 'flex'; }
-function closeHistory(){ document.getElementById('history-modal').style.display = 'none'; }
+
 function judgeFinal(){
     let w = 0, res = "";
     if (scores[1] > scores[2]) { w = 1; res = "勝星多数"; } else if (scores[2] > scores[1]) { w = 2; res = "勝星多数"; }
@@ -551,17 +481,18 @@ function judgeFinal(){
     else { if (firstPt === 1) { w = 1; res = "先陣の功"; } else if (firstPt === 2) { w = 2; res = "先陣の功"; } else { w = 0; res = "完全引分"; } } }
     
     playerData.matches++; if(w === 1) playerData.wins++;
-    saveData(); updateTitleRank();
+    saveData(); 
 
-    const menu = document.getElementById('menu-screen'); menu.style.display = 'flex'; setTimeout(()=>menu.style.opacity='1', 10);
-    menu.innerHTML = `
-        <h1 style="color:var(--gold)">勝負あり</h1>
-        <h2 style="font-size:2rem; margin-top:-20px">${w===0 ? '引き分け' : '勝者：プレイヤー'+w}</h2>
-        <p>決まり手：${res}</p>
-        <button class="start-btn" onclick="location.reload()">再戦</button>
-        <button class="sub-btn" onclick="showHistory()" style="margin-top:10px;">戦歴を見る</button>
-    `;
+    // 結果画面の表示
+    const resScreen = document.getElementById('result-screen');
+    document.getElementById('res-title').innerText = (w===0 ? '引き分け' : (w===1 ? 'あなたの勝ち' : 'あなたの負け'));
+    document.getElementById('res-reason').innerText = `決まり手：${res}`;
+    document.getElementById('res-scores').innerText = `壱: ${scores[1]}勝 - 弐: ${scores[2]}勝`;
+    
+    resScreen.style.display = 'flex';
+    setTimeout(()=>resScreen.style.opacity='1', 10);
 }
+
 function lockArea(p){ document.getElementById(`p${p}-area`).style.filter='grayscale(100%) brightness(0.3)'; document.getElementById(`p${p}-btn`).style.pointerEvents='none'; }
 function unlockArea(p){ document.getElementById(`p${p}-area`).style.filter='none'; document.getElementById(`p${p}-btn`).style.pointerEvents='auto'; }
 </script>
