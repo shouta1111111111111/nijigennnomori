@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>忍術性質変化バトル Ver.39</title>
+<link href="https://fonts.googleapis.com/css2?family=Reggae+One&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --p1-color: #ff4500;
+        --p2-color: #00bfff;
+        --gold: #ffd700;
+        --dark-bg: #111;
+    }
+
+    body {
+        font-family: 'Reggae One', serif;
+        text-align: center;
+        background-color: var(--dark-bg);
+        color: #fff;
+        margin: 0;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+    }
+
+    /* --- 動的背景 --- */
+    #bg-container {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at center, #222 0%, #000 100%);
+        z-index: -10; pointer-events: none;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+
+    /* --- メニュー画面 --- */
+    #menu-screen {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 3000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity 0.5s;
+    }
+    #menu-screen h1 {
+        font-size: 3rem; color: var(--gold);
+        text-shadow: 0 0 15px #ff8c00;
+        margin-bottom: 30px; letter-spacing: 2px;
+    }
+    .btn-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+    .mode-btn {
+        width: 300px; padding: 15px; font-size: 1.1rem;
+        background: rgba(255,255,255,0.05); color: #888;
+        border: 2px solid #444; border-radius: 4px;
+        cursor: pointer; font-family: 'Reggae One', serif;
+        transition: 0.3s;
+    }
+    .mode-btn.selected {
+        color: var(--gold); border-color: var(--gold);
+        background: rgba(255,215,0,0.1);
+        box-shadow: 0 0 10px var(--gold);
+        transform: scale(1.05);
+    }
+    .start-btn {
+        margin-top: 20px; width: 200px; padding: 15px;
+        font-size: 1.5rem; color: #000; background: var(--gold);
+        border: none; border-radius: 50px; cursor: pointer;
+        font-family: 'Reggae One', serif;
+        box-shadow: 0 0 15px var(--gold);
+    }
+
+    /* --- ゲームエリア --- */
+    .player-area {
+        height: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        position: relative; z-index: 10; transition: filter 0.5s;
+    }
+    #p2-area { transform: rotate(180deg); border-bottom: 1px solid #333; }
+    #p1-area { border-top: 1px solid #333; }
+    .hand { display: flex; justify-content: center; gap: 8px; min-height: 120px; width: 100%; align-items: flex-end; }
+
+    /* カード */
+    .card {
+        width: 70px; height: 100px;
+        border-radius: 8px; cursor: pointer;
+        position: relative; overflow: visible;
+        background: #222; border: 2px solid #555;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card-inner { width: 100%; height: 100%; overflow: hidden; border-radius: 6px; position: relative; }
+    .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: 0.3s; }
+    .card-label {
+        position: absolute; bottom: 0; width: 100%;
+        background: rgba(0,0,0,0.7); color: #fff; font-size: 1rem;
+        padding: 2px 0;
+    }
+    .card.selected {
+        transform: translateY(-20px) scale(1.1);
+        border-color: var(--gold);
+        box-shadow: 0 0 15px var(--gold);
+        z-index: 100;
+    }
+    .card.selected img { opacity: 1; }
+
+    .decide-btn {
+        width: 140px; height: 45px; margin-bottom: 10px;
+        background: #a00; border: 2px solid #ffcc00; border-radius: 25px;
+        color: #fff; font-family: 'Reggae One'; font-size: 1.2rem;
+        cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .decide-btn:active { transform: scale(0.95); }
+
+    /* --- 履歴 --- */
+    #history-btn {
+        position: absolute; top: 15px; right: 15px;
+        background: rgba(0,0,0,0.6); border: 1px solid #fff;
+        color: #fff; padding: 5px 15px; border-radius: 20px;
+        cursor: pointer; z-index: 1500; font-family: 'Reggae One'; font-size: 0.9rem;
+    }
+    #history-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.9); z-index: 3500;
+        display: none; flex-direction: column; align-items: center; padding-top: 40px;
+    }
+    #history-content {
+        width: 90%; max-width: 500px; height: 70%; overflow-y: auto;
+        background: #222; border: 2px solid #555; border-radius: 10px; padding: 10px;
+    }
+    .history-row {
+        display: flex; align-items: center; justify-content: space-between;
+        background: #333; margin-bottom: 8px; padding: 5px; border-radius: 5px; font-size: 0.9rem;
+    }
+    .hist-cards { display: flex; gap: 2px; }
+    .hist-img { width: 30px; height: 40px; object-fit: cover; border: 1px solid #777; }
+    .close-hist-btn {
+        margin-top: 20px; padding: 10px 30px; background: #555; color: #fff;
+        border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;
+    }
+
+    /* --- アニメーションレイヤー --- */
+    #anim-layer {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 2000; display: flex; align-items: center; justify-content: center;
+    }
+    
+    .clash-container {
+        position: absolute; display: flex; gap: 5px;
+        padding: 5px; border-radius: 10px;
+        background: rgba(0,0,0,0.5); opacity: 0;
+    }
+    .clash-img {
+        width: 100px; height: 140px; object-fit: cover;
+        border: 3px solid #fff; border-radius: 5px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    /* ★修正: 衝突アニメーション (重ならないように停止位置を調整) */
+    /* P1: 下から来て、中心より少し下(80px)で止まる */
+    @keyframes p1-clash-move { 
+        0%{transform:translateY(100vh) scale(0.5); opacity:0;} 
+        60%{transform:translateY(60px) scale(1.2); opacity:1;} 
+        80%{transform:translateY(80px) scale(1);} 
+        100%{transform:translateY(80px) scale(1); opacity:1;} 
+    }
+    /* P2: 上から来て、中心より少し上(-80px)で止まる (180度回転済み) */
+    @keyframes p2-clash-move { 
+        0%{transform:translateY(-100vh) rotate(180deg) scale(0.5); opacity:0;} 
+        60%{transform:translateY(-60px) rotate(180deg) scale(1.2); opacity:1;} 
+        80%{transform:translateY(-80px) rotate(180deg) scale(1);}
+        100%{transform:translateY(-80px) rotate(180deg) scale(1); opacity:1;} 
+    }
+
+    #result-text {
+        position: absolute; font-size: 5rem; color: #fff;
+        text-shadow: 0 0 20px var(--gold), 4px 4px 0 #000;
+        opacity: 0; z-index: 2500;
+    }
+    @keyframes text-pop { 0%{transform:scale(0); opacity:0;} 50%{transform:scale(1.2); opacity:1;} 100%{transform:scale(1); opacity:1;} }
+
+    #battle-center { z-index: 50; height: 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #score-display { font-size: 2rem; color: #fff; text-shadow: 0 0 10px #000; margin-bottom: 10px; }
+
+</style>
+</head>
+<body>
+
+<div id="bg-container"></div>
+
+<div id="menu-screen">
+    <h1>忍術性質変化バトル</h1>
+    <div class="btn-group">
+        <button id="m-norm" class="mode-btn selected" onclick="selMode('N')">ノーマル (3戦 / 2本先取)</button>
+        <button id="m-adv" class="mode-btn" onclick="selMode('A')">アドバンス (5戦 / 弾切 / 2本先取)</button>
+    </div>
+    <div class="btn-group">
+        <button id="p-com" class="mode-btn selected" onclick="selPlay('C')">一人モード (vs CPU)</button>
+        <button id="p-pvp" class="mode-btn" onclick="selPlay('P')">二人モード (2Players)</button>
+    </div>
+    <button class="start-btn" onclick="applyStart()">出撃</button>
+</div>
+
+<div id="anim-layer"></div>
+<div id="result-text"></div>
+
+<button id="history-btn" onclick="showHistory()" style="display:none;">戦歴之書</button>
+<div id="history-modal">
+    <h2 style="color:var(--gold); margin-bottom:20px;">対戦の記録</h2>
+    <div id="history-content"><div style="color:#aaa; text-align:center;">まだ記録はありません</div></div>
+    <button class="close-hist-btn" onclick="closeHistory()">閉じる</button>
+</div>
+
+<div id="p2-area" class="player-area">
+    <div id="p2-hand" class="hand"></div>
+    <button id="p2-btn" class="decide-btn" onclick="confirmMove(2)">P2 決定</button>
+</div>
+
+<div id="battle-center">
+    <div id="score-display">
+        <span style="color:var(--p1-color)">壱: <span id="s1">0</span></span>
+        <span style="margin:0 20px; font-size:1.2rem">vs</span>
+        <span style="color:var(--p2-color)">弐: <span id="s2">0</span></span>
+    </div>
+    <div id="status-msg" style="color:#aaa;">修行開始</div>
+</div>
+
+<div id="p1-area" class="player-area">
+    <button id="p1-btn" class="decide-btn" onclick="confirmMove(1)">P1 決定</button>
+    <div id="p1-hand" class="hand"></div>
+</div>
+
+<script>
+const icons = {
+    '火': 'https://livedoor.blogimg.jp/pokeruto_narutostorm/imgs/9/d/9df794cc.png',
+    '水': 'https://ooyake01.com/wp-content/uploads/2019/07/%E6%89%89%E9%96%93.png',
+    '土': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgUZKzoGoqlDT7mUC9X8fE76pwS8yTZOsQJWSf0JLyzQ&s',
+    '風': 'https://otakotaku.com/asset/img/character/2017/10/uzumaki-naruto-59dbafb3a0d9ep.jpg',
+    '雷': 'https://images-na.ssl-images-amazon.com/images/I/71rse6gO0XL._CR550,250,1420,1420_.jpg'
+};
+const typeOrd={'火':1,'水':2,'土':3,'風':4,'雷':5}, types=['火','水','土','風','雷'];
+const rel={'火':'風','風':'雷','雷':'土','土':'水','水':'火'};
+
+let hands, scores, selected, confirmed, turn, gMode='N', pMode='C';
+let p1D=[], p2D=[], firstPt=null, bannedStr=null, historyLog = [];
+
+window.onload = function() {
+    const bg = document.getElementById('bg-container');
+    for(let i=0; i<30; i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random()*5 + 2;
+        p.style.width = size+'px'; p.style.height = size+'px';
+        p.style.background = (Math.random()>0.5) ? '#ff4500' : '#00bfff';
+        p.style.left = Math.random()*100 + '%';
+        p.style.animationDuration = (Math.random()*10 + 5) + 's';
+        p.style.animationDelay = Math.random()*5 + 's';
+        bg.appendChild(p);
+    }
+};
+
+function selMode(m){gMode=m; document.getElementById('m-norm').classList.toggle('selected',m==='N'); document.getElementById('m-adv').classList.toggle('selected',m==='A');}
+function selPlay(p){pMode=p; document.getElementById('p-com').classList.toggle('selected',p==='C'); document.getElementById('p-pvp').classList.toggle('selected',p==='P');}
+
+function applyStart(){
+    document.getElementById('menu-screen').style.opacity = '0';
+    setTimeout(()=>{
+        document.getElementById('menu-screen').style.display='none';
+    }, 500);
+    resetGameData();
+}
+
+function resetGameData(){
+    hands={1:[...types],2:[...types]}; scores={1:0,2:0}; selected={1:[],2:[]}; 
+    confirmed={1:!1,2:!1}; turn=1; firstPt=null; bannedStr=null;
+    p1D=[]; p2D=[]; historyLog=[];
+    
+    document.getElementById('p2-btn').style.visibility=(pMode==='C')?'hidden':'visible';
+    document.getElementById('history-btn').style.display='block';
+    updateScoreUI(); unlockArea(1); unlockArea(2); renderHands(); updateHistoryModal();
+}
+
+function updateScoreUI(){
+    document.getElementById('s1').innerText = scores[1];
+    document.getElementById('s2').innerText = scores[2];
+    const max = (gMode==='N')?3:5;
+    document.getElementById('status-msg').innerText = `第 ${turn} 戦目 (${max}戦勝負)`;
+}
+
+function renderHands(){
+    for(let p=1;p<=2;p++){
+        const container = document.getElementById(`p${p}-hand`); container.innerHTML = "";
+        hands[p].forEach(type => {
+            const isSel = selected[p].includes(type);
+            const card = document.createElement("div");
+            card.className = "card" + (isSel ? " selected" : "");
+            const colors = {'火':'#d32f2f','水':'#1976d2','土':'#f57c00','風':'#388e3c','雷':'#fbc02d'};
+            card.style.backgroundColor = colors[type];
+            card.innerHTML = `<div class="card-inner"><img src="${icons[type]}" onerror="this.style.opacity='0'"><div class="card-label">${type}</div></div>`;
+            card.onclick = () => { if(!confirmed[p]){ isSel ? selected[p]=selected[p].filter(t=>t!==type) : selected[p].push(type); renderHands(); }};
+            container.appendChild(card);
+        });
+    }
+}
+
+function confirmMove(p){
+    const s = selected[p].sort((a,b)=>typeOrd[a]-typeOrd[b]);
+    const comboStr = s.join("+");
+    if(s.length===0) return;
+    if(s.length===2 && !(s.includes('水') && s.includes('風'))){ alert("氷遁(水+風)のみ！"); return; }
+    if(s.length===3 && !(s.includes('火') && s.includes('風') && s.includes('土'))){ alert("塵遁(火+風+土)のみ！"); return; }
+    if(s.length>3){ alert("4枚以上は不可"); return; }
+    if(comboStr === bannedStr){ alert(`封印中：${bannedStr} 以外を出せ！`); return; }
+
+    if(p===1) p1D=[...s]; else p2D=[...s];
+    confirmed[p]=!0; selected[p]=[]; renderHands(); lockArea(p);
+    if(confirmed[1]){ if(pMode==='C') setTimeout(comLogic, 500); else if(confirmed[2]) startSlowBattle(); }
+}
+
+function comLogic(){
+    const h2=hands[2]; let pos=[]; h2.forEach(c=>pos.push([c]));
+    if(h2.includes('水')&&h2.includes('風')) pos.push(['水','風']);
+    if(h2.includes('火')&&h2.includes('風')&&h2.includes('土')) pos.push(['火','風','土']);
+    if(bannedStr) pos = pos.filter(p => p.join("+") !== bannedStr);
+    p2D = pos[Math.floor(Math.random()*pos.length)]; confirmed[2]=!0; startSlowBattle();
+}
+
+function startSlowBattle(){
+    document.getElementById('p1-hand').style.opacity='0';
+    document.getElementById('p2-hand').style.opacity='0';
+    document.getElementById('battle-center').style.opacity='0';
+    
+    const layer = document.getElementById('anim-layer');
+    layer.innerHTML = '';
+
+    const c1 = createClashContainer(p1D, '#ff4500');
+    // P1は下から来て、中心より少し下(80px)で止まるアニメ
+    c1.style.animation = 'p1-clash-move 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards'; 
+    layer.appendChild(c1);
+
+    const c2 = createClashContainer(p2D, '#00bfff');
+    // P2は上から来て、中心より少し上(-80px)で止まるアニメ
+    c2.style.animation = 'p2-clash-move 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards';
+    layer.appendChild(c2);
+
+    setTimeout(() => { resolveBattle(); }, 1800);
+}
+
+function createClashContainer(cards, color){
+    const box = document.createElement('div');
+    box.className = 'clash-container';
+    box.style.borderColor = color;
+    cards.forEach(t => {
+        const img = document.createElement('img');
+        img.src = icons[t]; img.className = 'clash-img'; img.style.borderColor = color;
+        box.appendChild(img);
+    });
+    return box;
+}
+
+function resolveBattle(){
+    const m1=p1D, m2=p2D, s1=m1.join("+"), s2=m2.join("+");
+    let win=0, logRes="";
+    if(m1.length > m2.length) win=1; else if(m2.length > m1.length) win=2;
+    else if(m1.length===1 && rel[m1[0]]===m2[0]) win=1; else if(m1.length===1 && rel[m2[0]]===m1[0]) win=2;
+
+    const resText = document.getElementById('result-text');
+    let nextAction = null;
+
+    if(win!==0){
+        scores[win]++; if(firstPt===null) firstPt=win;
+        resText.innerText = (win===1)?"壱の勝!":"弐の勝!";
+        resText.style.color = (win===1)?"#ff4500":"#00bfff";
+        logRes = `P${win} 勝利`; nextAction = () => consumeCards(m1, m2);
+    } else {
+        if (s1 === s2) { 
+            if (gMode === 'N') {
+                if (turn === 3) { resText.innerText = "相殺(終)"; logRes="引分(終)"; nextAction = () => consumeCards(m1, m2); }
+                else { resText.innerText = "出し直し"; logRes="あいこ"; bannedStr = null; nextAction = () => resetTurn(); }
+            } else if (gMode === 'A' && turn === 1) { 
+                bannedStr = s1; resText.innerText = "封印!!"; logRes="封印"; nextAction = () => resetTurn();
+            } else { resText.innerText = "相殺"; logRes="引分"; nextAction = () => consumeCards(m1, m2); }
+        } else { resText.innerText = "相殺"; logRes="引分"; nextAction = () => consumeCards(m1, m2); }
+    }
+    
+    addHistory(turn, p1D, p2D, logRes);
+    resText.style.animation = 'text-pop 0.5s forwards';
+
+    setTimeout(() => {
+        document.getElementById('anim-layer').innerHTML = '';
+        resText.style.opacity = '0'; resText.style.animation = 'none';
+        document.getElementById('p1-hand').style.opacity='1';
+        document.getElementById('p2-hand').style.opacity='1';
+        document.getElementById('battle-center').style.opacity='1';
+        nextAction(); updateScoreUI(); renderHands(); checkGameOver();
+    }, 2000);
+}
+
+function checkGameOver(){
+    let isGameOver = false;
+    const limit = (gMode === 'N') ? 3 : 5;
+    if (scores[1] >= 2 || scores[2] >= 2) isGameOver = true;
+    else if (gMode === 'N' && turn > limit) isGameOver = true;
+    else if (gMode === 'A' && (turn > limit || hands[1].length === 0 || hands[2].length === 0)) isGameOver = true;
+
+    if(isGameOver) setTimeout(judgeFinal, 800);
+    else resetTurn();
+}
+
+function consumeCards(m1, m2) {
+    m1.forEach(c=>hands[1].splice(hands[1].indexOf(c),1));
+    m2.forEach(c=>hands[2].splice(hands[2].indexOf(c),1));
+    turn++; bannedStr=null;
+}
+
+function resetTurn(){ confirmed={1:!1,2:!1}; p1D=[]; p2D=[]; selected={1:[],2:[]}; unlockArea(1); unlockArea(2); renderHands(); }
+
+function addHistory(t, h1, h2, res){
+    historyLog.push({ turn: t, h1: [...h1], h2: [...h2], res: res });
+    updateHistoryModal();
+}
+
+function updateHistoryModal(){
+    const content = document.getElementById('history-content');
+    if(historyLog.length === 0){ content.innerHTML = '<div style="color:#aaa; text-align:center;">まだ記録はありません</div>'; return; }
+    let html = '';
+    historyLog.forEach(log => {
+        const genImgs = (arr) => arr.map(type => `<img src="${icons[type]}" class="hist-img">`).join('');
+        html += `<div class="history-row"><div style="width:20px;">${log.turn}</div><div class="hist-cards">${genImgs(log.h1)}</div><div style="font-weight:bold; color:var(--gold);">${log.res}</div><div class="hist-cards">${genImgs(log.h2)}</div></div>`;
+    });
+    content.innerHTML = html;
+}
+function showHistory(){ document.getElementById('history-modal').style.display = 'flex'; }
+function closeHistory(){ document.getElementById('history-modal').style.display = 'none'; }
+
+function judgeFinal(){
+    let w = 0, res = "";
+    if (scores[1] > scores[2]) { w = 1; res = "勝星多数"; }
+    else if (scores[2] > scores[1]) { w = 2; res = "勝星多数"; }
+    else {
+        if (hands[1].length > hands[2].length) { w = 1; res = "残手札数"; }
+        else if (hands[2].length > hands[1].length) { w = 2; res = "残手札数"; }
+        else {
+            if (firstPt === 1) { w = 1; res = "先陣の功"; }
+            else if (firstPt === 2) { w = 2; res = "先陣の功"; }
+            else { w = 0; res = "完全引分"; }
+        }
+    }
+    const menu = document.getElementById('menu-screen');
+    menu.style.display = 'flex';
+    setTimeout(()=>menu.style.opacity='1', 10);
+
+    menu.innerHTML = `
+        <h1 style="color:var(--gold)">勝負あり</h1>
+        <h2 style="font-size:2rem; margin-top:-20px">${w===0 ? '引き分け' : '勝者：プレイヤー'+w}</h2>
+        <p>決まり手：${res}</p>
+        <button class="start-btn" onclick="returnToMenu()">再戦</button>
+        <button class="mode-btn" onclick="showHistory()" style="margin-top:10px;">戦歴を見る</button>
+    `;
+}
+
+function returnToMenu(){
+    const menu = document.getElementById('menu-screen');
+    menu.innerHTML = `
+        <h1>忍術性質変化バトル</h1>
+        <div class="btn-group">
+            <button id="m-norm" class="mode-btn selected" onclick="selMode('N')">ノーマル (3戦 / 2本先取)</button>
+            <button id="m-adv" class="mode-btn" onclick="selMode('A')">アドバンス (5戦 / 弾切 / 2本先取)</button>
+        </div>
+        <div class="btn-group">
+            <button id="p-com" class="mode-btn selected" onclick="selPlay('C')">一人モード (vs CPU)</button>
+            <button id="p-pvp" class="mode-btn" onclick="selPlay('P')">二人モード (2Players)</button>
+        </div>
+        <button class="start-btn" onclick="applyStart()">出撃</button>
+    `;
+}
+
+function lockArea(p){ document.getElementById(`p${p}-area`).style.filter='grayscale(100%) brightness(0.3)'; document.getElementById(`p${p}-btn`).style.pointerEvents='none'; }
+function unlockArea(p){ document.getElementById(`p${p}-area`).style.filter='none'; document.getElementById(`p${p}-btn`).style.pointerEvents='auto'; }
+</script>
+</body>
+</html>
