@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>忍術性質変化バトル Ver.46</title>
+<title>忍術性質変化バトル Ver.47 - 最強AI -</title>
 <link href="https://fonts.googleapis.com/css2?family=Reggae+One&display=swap" rel="stylesheet">
 <style>
     :root {
-        --p1-color: #ff4500; --p2-color: #00bfff; --gold: #ffd700; --dark-bg: #111;
+        --p1-color: #ff4500; --p2-color: #00bfff; --gold: #ffd700; --dark-bg: #050505;
     }
     body {
         font-family: 'Reggae One', serif; text-align: center;
@@ -17,119 +17,137 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* 背景 */
-    #bg-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #222 0%, #000 100%); z-index: -10; pointer-events: none; }
+    /* 背景パーティクル */
+    #bg-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: -10; pointer-events: none; }
     .particle { position: absolute; border-radius: 50%; opacity: 0.6; animation: float-up linear infinite; }
     @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
 
-    /* メニュー & ランク */
+    /* メニュー画面 */
     #menu-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-    #menu-screen h1 { font-size: 3rem; color: var(--gold); text-shadow: 0 0 15px #ff8c00; margin-bottom: 10px; }
-    #rank-info { border: 2px solid var(--gold); border-radius: 10px; padding: 10px 20px; margin-bottom: 20px; background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
-    #rank-name { font-size: 2rem; color: var(--gold); margin: 5px 0; }
-    .btn-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    .mode-btn { width: 280px; padding: 12px; font-size: 1rem; background: rgba(255,255,255,0.05); color: #888; border: 2px solid #444; border-radius: 4px; cursor: pointer; font-family: 'Reggae One'; transition: 0.3s; }
-    .mode-btn.selected { color: var(--gold); border-color: var(--gold); background: rgba(255,215,0,0.1); box-shadow: 0 0 10px var(--gold); transform: scale(1.05); }
-    .start-btn { width: 200px; padding: 15px; font-size: 1.5rem; color: #000; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-family: 'Reggae One'; box-shadow: 0 0 15px var(--gold); }
+    #menu-screen h1 { font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 15px #ff8c00; margin-bottom: 10px; }
+    
+    #rank-info { border: 2px solid var(--gold); border-radius: 10px; padding: 10px 25px; margin-bottom: 20px; background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+    #rank-title { font-size: 1rem; color: #aaa; }
+    #rank-name { font-size: 2.2rem; color: var(--gold); text-shadow: 0 0 10px var(--gold); margin: 5px 0; }
+    
+    .btn-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .mode-btn { width: 280px; padding: 12px; font-size: 1rem; background: rgba(255,255,255,0.05); color: #bbb; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-family: 'Reggae One'; transition: 0.3s; }
+    .mode-btn.selected { color: var(--gold); border-color: var(--gold); background: rgba(255,215,0,0.15); box-shadow: 0 0 15px rgba(255,215,0,0.4); transform: scale(1.05); color: #fff; }
+    .start-btn { width: 220px; padding: 16px; font-size: 1.4rem; color: #000; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-family: 'Reggae One'; box-shadow: 0 0 20px rgba(255,215,0,0.6); animation: pulse-btn 2s infinite; }
+    @keyframes pulse-btn { 0%{box-shadow:0 0 20px rgba(255,215,0,0.6);} 50%{box-shadow:0 0 40px rgba(255,215,0,0.9);} 100%{box-shadow:0 0 20px rgba(255,215,0,0.6);} }
 
-    /* ゲームエリア */
-    .player-area { height: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 10; transition: filter 0.5s; }
+    /* ゲーム画面レイアウト */
+    .player-area { height: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 10; }
     #p2-area { transform: rotate(180deg); border-bottom: 1px solid #333; }
     #p1-area { border-top: 1px solid #333; }
-    .hand { display: flex; justify-content: center; gap: 5px; min-height: 120px; width: 100%; align-items: flex-end; }
-    
-    /* --- カード基本 --- */
-    .card { width: 65px; height: 95px; border-radius: 8px; cursor: pointer; position: relative; overflow: visible; background: #222; border: 2px solid #555; transition: transform 0.2s; }
-    .card-inner { width: 100%; height: 100%; overflow: hidden; border-radius: 6px; position: relative; z-index: 1; }
+    .hand { display: flex; justify-content: center; gap: 6px; min-height: 110px; width: 100%; align-items: flex-end; perspective: 1000px; }
+
+    /* --- カードデザイン & レアリティ --- */
+    .card {
+        width: 68px; height: 98px; border-radius: 6px; cursor: pointer;
+        position: relative; overflow: hidden; background: #222; border: 2px solid #555;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-style: preserve-3d;
+    }
+    .card-inner { width: 100%; height: 100%; position: relative; z-index: 1; }
     .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-    .card-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: #fff; font-size: 10px; padding: 2px 0; }
-    .card.selected { transform: translateY(-20px) scale(1.1); border-color: var(--gold); box-shadow: 0 0 15px var(--gold); z-index: 100; }
-    .card.selected img { opacity: 1; }
+    .card-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; padding: 2px 0; pointer-events: none; }
+    
+    .card.selected { transform: translateY(-25px) scale(1.1); border-color: var(--gold); box-shadow: 0 0 15px var(--gold); z-index: 100; }
+    .card.selected img { opacity: 1; filter: brightness(1.1); }
 
-    /* --- ★ここからレアリティ演出★ --- */
-
-    /* 上忍以上: シルバーホロ */
-    .card.rank-silver {
-        border-color: #c0c0c0;
-        box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+    /* ▼▼ レアリティエフェクト ▼▼ */
+    /* シルバーレア (15勝以上) */
+    .card.rank-silver { border-color: #silver; box-shadow: 0 0 10px rgba(192,192,192,0.5); }
+    .card.rank-silver::before {
+        content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.5) 50%, transparent 55%);
+        animation: shine 3s infinite; pointer-events: none; z-index: 2;
     }
-    .card.rank-silver::after {
-        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        border-radius: 6px;
-        background: linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 70%);
-        pointer-events: none; z-index: 2;
-        mix-blend-mode: overlay;
-        opacity: 0.7;
-    }
-
-    /* 影以上: レインボーホログラム */
+    
+    /* レインボーホロ (50勝以上) - これが最強演出 */
     .card.rank-rainbow {
         border-color: #fff;
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-        animation: border-rainbow 3s linear infinite;
+        animation: rainbow-border 2s linear infinite;
+        box-shadow: 0 0 15px rgba(255,255,255,0.5);
     }
     .card.rank-rainbow::after {
         content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        border-radius: 6px;
-        /* 七色の光沢 */
-        background: linear-gradient(115deg, transparent 20%, rgba(255,0,0,0.3) 30%, rgba(255,255,0,0.3) 40%, rgba(0,255,0,0.3) 50%, rgba(0,255,255,0.3) 60%, rgba(0,0,255,0.3) 70%, transparent 80%);
+        background: linear-gradient(125deg, 
+            rgba(255,0,0,0.3) 0%, rgba(255,165,0,0.3) 16%, rgba(255,255,0,0.3) 33%, 
+            rgba(0,128,0,0.3) 50%, rgba(0,0,255,0.3) 66%, rgba(75,0,130,0.3) 83%, rgba(238,130,238,0.3) 100%);
         background-size: 200% 200%;
-        animation: holo-shine 2.5s linear infinite;
-        pointer-events: none; z-index: 2;
-        mix-blend-mode: color-dodge;
+        animation: holo-move 3s ease infinite;
+        mix-blend-mode: overlay; pointer-events: none; z-index: 3;
     }
-    @keyframes holo-shine { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
-    @keyframes border-rainbow { 
-        0%{box-shadow:0 0 10px #ff0000;} 20%{box-shadow:0 0 10px #ffff00;} 
-        40%{box-shadow:0 0 10px #00ff00;} 60%{box-shadow:0 0 10px #00ffff;} 
-        80%{box-shadow:0 0 10px #0000ff;} 100%{box-shadow:0 0 10px #ff00ff;} 
+    .card.rank-rainbow::before {
+        content: ""; position: absolute; top: -100%; left: -100%; width: 300%; height: 300%;
+        background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, transparent 20%);
+        animation: sparkle 4s infinite; z-index: 4; pointer-events: none;
     }
 
-    /* --- その他UI --- */
-    .decide-btn { width: 130px; height: 45px; margin-bottom: 5px; background: #a00; border: 2px solid #ffcc00; border-radius: 25px; color: #fff; font-family: 'Reggae One'; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: relative; z-index: 200; pointer-events: auto; touch-action: manipulation; }
-    .decide-btn:active { transform: scale(0.95); }
+    @keyframes shine { 0% { transform: translate(-30%, -30%); } 100% { transform: translate(30%, 30%); } }
+    @keyframes holo-move { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes rainbow-border { 0%{border-color:red;} 20%{border-color:yellow;} 40%{border-color:lime;} 60%{border-color:cyan;} 80%{border-color:blue;} 100%{border-color:magenta;} }
+    @keyframes sparkle { 0%{transform:translate(0,0);} 100%{transform:translate(50px,50px);} }
+
+    /* その他UI */
+    .decide-btn {
+        width: 140px; height: 45px; margin-bottom: 5px; background: #a00; border: 2px solid #ffcc00;
+        border-radius: 25px; color: #fff; font-family: 'Reggae One'; font-size: 1.2rem; cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.6); position: relative; z-index: 200; pointer-events: auto;
+    }
+    .decide-btn:active { transform: scale(0.96); }
     #battle-center { z-index: 50; height: 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-    #score-display { font-size: 2rem; color: #fff; text-shadow: 0 0 10px #000; margin-bottom: 10px; }
+    #score-display { font-size: 2rem; color: #fff; text-shadow: 0 0 10px #000; margin-bottom: 5px; }
 
     /* 演出レイヤー */
     #anim-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; display: flex; align-items: center; justify-content: center; }
-    .clash-container { position: absolute; display: flex; gap: 5px; padding: 5px; border-radius: 10px; background: rgba(0,0,0,0.5); opacity: 0; will-change: transform, opacity, filter; }
-    .clash-img { width: 100px; height: 140px; object-fit: cover; border: 3px solid #fff; border-radius: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+    .clash-container { position: absolute; display: flex; gap: 5px; padding: 5px; border-radius: 10px; background: rgba(0,0,0,0.5); opacity: 0; will-change: transform; }
+    .clash-img { width: 100px; height: 140px; object-fit: cover; border: 3px solid #fff; border-radius: 5px; box-shadow: 0 0 25px rgba(0,0,0,0.8); }
 
-    /* アニメーション */
-    .anim-p1-enter { animation: p1-enter 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-    .anim-p2-enter { animation: p2-enter 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    /* アニメーション定義 */
+    .anim-p1-enter { animation: p1-enter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    .anim-p2-enter { animation: p2-enter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
     @keyframes p1-enter { 0%{transform:translateY(100vh) scale(0.5); opacity:0;} 60%{transform:translateY(50px) scale(1.2); opacity:1;} 100%{transform:translateY(65px) scale(1); opacity:1;} }
     @keyframes p2-enter { 0%{transform:translateY(-100vh) rotate(180deg) scale(0.5); opacity:0;} 60%{transform:translateY(-50px) rotate(180deg) scale(1.2); opacity:1;} 100%{transform:translateY(-65px) rotate(180deg) scale(1); opacity:1;} }
-    .anim-p1-win { animation: p1-win 0.5s ease-out forwards; }
-    .anim-p2-win { animation: p2-win 0.5s ease-out forwards; }
-    @keyframes p1-win { from{transform:translateY(65px) scale(1);} to{transform:translateY(-20px) scale(1.3); filter:brightness(1.5);} }
-    @keyframes p2-win { from{transform:translateY(-65px) rotate(180deg) scale(1);} to{transform:translateY(20px) rotate(180deg) scale(1.3); filter:brightness(1.5);} }
 
-    /* 敗者散り際 */
-    .anim-lose-fire-p1 { animation: lose-fire-p1 0.8s forwards; } .anim-lose-fire-p2 { animation: lose-fire-p2 0.8s forwards; }
-    @keyframes lose-fire-p2 { 0% { transform:translateY(-65px) rotate(180deg); filter:sepia(1) saturate(5) hue-rotate(-50deg); } 100% { transform:translateY(-150px) rotate(180deg) scale(0.5); opacity:0; filter:brightness(0); } }
-    @keyframes lose-fire-p1 { 0% { transform:translateY(65px); filter:sepia(1) saturate(5) hue-rotate(-50deg); } 100% { transform:translateY(150px) scale(0.5); opacity:0; filter:brightness(0); } }
-    .anim-lose-water-p1 { animation: lose-water-p1 0.8s forwards; } .anim-lose-water-p2 { animation: lose-water-p2 0.8s forwards; }
-    @keyframes lose-water-p2 { 0% { transform:translateY(-65px) rotate(180deg); filter:hue-rotate(180deg); } 100% { transform:translateY(-65px) rotate(180deg) scale(1.5, 0.1); opacity:0; filter:blur(10px); } }
-    @keyframes lose-water-p1 { 0% { transform:translateY(65px); filter:hue-rotate(180deg); } 100% { transform:translateY(65px) scale(1.5, 0.1); opacity:0; filter:blur(10px); } }
-    .anim-lose-thunder-p1 { animation: lose-thunder-p1 0.6s forwards; } .anim-lose-thunder-p2 { animation: lose-thunder-p2 0.6s forwards; }
-    @keyframes lose-thunder-p2 { 0%,40% { transform:translateY(-65px) rotate(180deg); filter:invert(1); } 20%,60% { transform:translateY(-65px) rotate(190deg); filter:invert(0); } 100% { transform:translateY(-65px) rotate(180deg) scale(0); opacity:0; } }
-    @keyframes lose-thunder-p1 { 0%,40% { transform:translateY(65px); filter:invert(1); } 20%,60% { transform:translateY(65px) rotate(10deg); filter:invert(0); } 100% { transform:translateY(65px) scale(0); opacity:0; } }
-    .anim-lose-earth-p1 { animation: lose-earth-p1 0.6s forwards; } .anim-lose-earth-p2 { animation: lose-earth-p2 0.6s forwards; }
-    @keyframes lose-earth-p2 { 0% { transform:translateY(-65px) rotate(180deg); filter:grayscale(1); } 100% { transform:translateY(-300px) rotate(180deg) scaleY(0.2); opacity:0; } }
-    @keyframes lose-earth-p1 { 0% { transform:translateY(65px); filter:grayscale(1); } 100% { transform:translateY(300px) scaleY(0.2); opacity:0; } }
-    .anim-lose-wind-p1 { animation: lose-wind-p1 0.8s forwards; } .anim-lose-wind-p2 { animation: lose-wind-p2 0.8s forwards; }
-    @keyframes lose-wind-p2 { 0% { transform:translateY(-65px) rotate(180deg); } 100% { transform:translateY(-100vh) rotate(720deg) scale(0); opacity:0; } }
-    @keyframes lose-wind-p1 { 0% { transform:translateY(65px); } 100% { transform:translateY(100vh) rotate(720deg) scale(0); opacity:0; } }
+    /* 勝敗アクション */
+    .anim-p1-win { animation: p1-win 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    .anim-p2-win { animation: p2-win 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes p1-win { from{transform:translateY(65px) scale(1);} to{transform:translateY(-30px) scale(1.4); z-index:2100;} }
+    @keyframes p2-win { from{transform:translateY(-65px) rotate(180deg) scale(1);} to{transform:translateY(30px) rotate(180deg) scale(1.4); z-index:2100;} }
+
+    /* 敗北エフェクト */
+    /* 火: 燃焼 */
+    .anim-lose-fire-p2 { animation: burn-p2 0.8s forwards; } .anim-lose-fire-p1 { animation: burn-p1 0.8s forwards; }
+    @keyframes burn-p2 { 0%{transform:translateY(-65px) rotate(180deg); filter:sepia(1) saturate(5) hue-rotate(-50deg);} 100%{transform:translateY(-150px) rotate(180deg) scale(0.8); opacity:0; filter:brightness(0);} }
+    @keyframes burn-p1 { 0%{transform:translateY(65px); filter:sepia(1) saturate(5) hue-rotate(-50deg);} 100%{transform:translateY(150px) scale(0.8); opacity:0; filter:brightness(0);} }
+    /* 水: 溶解 */
+    .anim-lose-water-p2 { animation: drown-p2 0.8s forwards; } .anim-lose-water-p1 { animation: drown-p1 0.8s forwards; }
+    @keyframes drown-p2 { 0%{transform:translateY(-65px) rotate(180deg); filter:hue-rotate(180deg);} 100%{transform:translateY(-65px) rotate(180deg) scale(1.5,0.1); opacity:0; filter:blur(10px);} }
+    @keyframes drown-p1 { 0%{transform:translateY(65px); filter:hue-rotate(180deg);} 100%{transform:translateY(65px) scale(1.5,0.1); opacity:0; filter:blur(10px);} }
+    /* 雷: 感電 */
+    .anim-lose-thunder-p2 { animation: shock-p2 0.6s forwards; } .anim-lose-thunder-p1 { animation: shock-p1 0.6s forwards; }
+    @keyframes shock-p2 { 0%,40%{transform:translateY(-65px) rotate(180deg); filter:invert(1);} 100%{transform:translateY(-65px) rotate(180deg) scale(0); opacity:0;} }
+    @keyframes shock-p1 { 0%,40%{transform:translateY(65px); filter:invert(1);} 100%{transform:translateY(65px) scale(0); opacity:0;} }
+    /* 土: 崩落 */
+    .anim-lose-earth-p2 { animation: crush-p2 0.6s forwards; } .anim-lose-earth-p1 { animation: crush-p1 0.6s forwards; }
+    @keyframes crush-p2 { 0%{transform:translateY(-65px) rotate(180deg); filter:grayscale(1);} 100%{transform:translateY(-300px) rotate(180deg) scaleY(0.2); opacity:0;} }
+    @keyframes crush-p1 { 0%{transform:translateY(65px); filter:grayscale(1);} 100%{transform:translateY(300px) scaleY(0.2); opacity:0;} }
+    /* 風: 吹き飛び */
+    .anim-lose-wind-p2 { animation: blast-p2 0.8s forwards; } .anim-lose-wind-p1 { animation: blast-p1 0.8s forwards; }
+    @keyframes blast-p2 { 0%{transform:translateY(-65px) rotate(180deg);} 100%{transform:translateY(-100vh) rotate(720deg) scale(0); opacity:0;} }
+    @keyframes blast-p1 { 0%{transform:translateY(65px);} 100%{transform:translateY(100vh) rotate(720deg) scale(0); opacity:0;} }
+    /* 弾き飛ばし */
     .anim-repel-p1 { animation: repel-p1 0.5s ease-out forwards; } .anim-repel-p2 { animation: repel-p2 0.5s ease-out forwards; }
-    @keyframes repel-p1 { from{transform:translateY(65px);} to{transform:translateY(250px) rotate(-45deg) scale(0.8); opacity:0;} }
-    @keyframes repel-p2 { from{transform:translateY(-65px) rotate(180deg);} to{transform:translateY(-250px) rotate(225deg) scale(0.8); opacity:0;} }
+    @keyframes repel-p1 { from{transform:translateY(65px);} to{transform:translateY(300px) rotate(-45deg) scale(0.5); opacity:0;} }
+    @keyframes repel-p2 { from{transform:translateY(-65px) rotate(180deg);} to{transform:translateY(-300px) rotate(225deg) scale(0.5); opacity:0;} }
 
     #result-text { position: absolute; font-size: 5rem; color: #fff; text-shadow: 0 0 20px var(--gold), 4px 4px 0 #000; opacity: 0; z-index: 2500; pointer-events: none; }
     @keyframes text-pop { 0%{transform:scale(0); opacity:0;} 50%{transform:scale(1.2); opacity:1;} 100%{transform:scale(1); opacity:1;} }
 
-    /* 履歴 */
+    /* 履歴ボタン等 */
     #history-btn { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); border: 1px solid #fff; color: #fff; padding: 5px 15px; border-radius: 20px; cursor: pointer; z-index: 1500; font-family: 'Reggae One'; font-size: 0.8rem; }
     #history-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3500; display: none; flex-direction: column; align-items: center; padding-top: 40px; }
     #history-content { width: 90%; max-width: 500px; height: 60%; overflow-y: auto; background: #222; border: 2px solid #555; border-radius: 10px; padding: 10px; }
@@ -145,6 +163,7 @@
 <div id="menu-screen">
     <h1>忍術性質変化バトル</h1>
     <div id="rank-info">
+        <div id="rank-title">忍者ランク</div>
         <div id="rank-name">アカデミー生</div>
         <div style="font-size:0.9rem; color:#ccc;">戦歴: 0勝 / 0戦</div>
     </div>
@@ -153,7 +172,7 @@
         <button id="m-adv" class="mode-btn" onclick="selMode('A')">アドバンス (5戦 / 弾切 / 2本先取)</button>
     </div>
     <div class="btn-group">
-        <button id="p-com" class="mode-btn selected" onclick="selPlay('C')">一人モード (vs CPU)</button>
+        <button id="p-com" class="mode-btn selected" onclick="selPlay('C')">一人モード (最強AI)</button>
         <button id="p-pvp" class="mode-btn" onclick="selPlay('P')">二人モード (2Players)</button>
     </div>
     <button class="start-btn" onclick="applyStart()">出撃</button>
@@ -202,10 +221,12 @@ const RANKS = [
     { name: "特別上忍", wins: 7 }, { name: "上忍", wins: 15 }, { name: "暗部", wins: 30 },
     { name: "影", wins: 50 }, { name: "伝説の忍", wins: 100 }
 ];
-let playerData = { wins: 0, matches: 0 };
+// ★初期値を最強状態にしてエフェクト確認★
+let playerData = { wins: 100, matches: 100 };
 
 window.onload = function() {
-    loadData(); updateRankUI();
+    // loadData(); // ※確認のためロードを一時無効化（リセットしたい場合はここを有効に）
+    updateRankUI();
     const bg = document.getElementById('bg-container');
     for(let i=0; i<30; i++){
         const p = document.createElement('div'); p.className = 'particle'; const size = Math.random()*5+2; p.style.width=size+'px'; p.style.height=size+'px';
@@ -221,8 +242,7 @@ function updateRankUI() {
     document.getElementById('rank-name').innerText = currentRank;
     document.querySelector('#rank-info div:last-child').innerText = `戦歴: ${playerData.wins}勝 / ${playerData.matches}戦`;
 }
-
-// ランクに応じたカードクラスを返す
+// ランクに応じたクラス
 function getCardRankClass() {
     if(playerData.wins >= 50) return "rank-rainbow";
     if(playerData.wins >= 15) return "rank-silver";
@@ -236,15 +256,13 @@ function resetGameData(){ hands={1:[...types],2:[...types]}; scores={1:0,2:0}; s
 function updateScoreUI(){ document.getElementById('s1').innerText = scores[1]; document.getElementById('s2').innerText = scores[2]; const max = (gMode==='N')?3:5; document.getElementById('status-msg').innerText = `第 ${turn} 戦目 (${max}戦勝負)`; }
 
 function renderHands(){
-    // プレイヤーのランク効果を取得
     const rankClass = getCardRankClass();
-    
     for(let p=1;p<=2;p++){
         const container = document.getElementById(`p${p}-hand`); container.innerHTML = "";
         hands[p].forEach(type => {
             const isSel = selected[p].includes(type); 
-            // ランクエフェクトクラスを追加
             const card = document.createElement("div"); 
+            // ランククラスを付与
             card.className = "card " + rankClass + (isSel ? " selected" : "");
             
             const colors = {'火':'#d32f2f','水':'#1976d2','土':'#f57c00','風':'#388e3c','雷':'#fbc02d'}; card.style.backgroundColor = colors[type];
@@ -261,15 +279,68 @@ function confirmMove(p){
     if(s.length===3 && !(s.includes('火') && s.includes('風') && s.includes('土'))){ alert("塵遁(火+風+土)のみ！"); return; }
     if(s.length>3){ alert("4枚以上は不可"); return; }
     if(comboStr === bannedStr){ alert(`封印中：${bannedStr} 以外を出せ！`); return; }
-    if(p===1) p1D=[...s]; else p2D=[...s]; confirmed[p]=!0; selected[p]=[]; renderHands(); lockArea(p);
-    if(confirmed[1]){ if(pMode==='C') setTimeout(comLogic, 500); else if(confirmed[2]) startSlowBattle(); }
+    
+    if(p===1) p1D=[...s]; else p2D=[...s]; 
+    confirmed[p]=!0; selected[p]=[]; renderHands(); lockArea(p);
+    
+    if(confirmed[1]){ 
+        if(pMode==='C') setTimeout(superAiLogic, 500); // ★最強AI起動
+        else if(confirmed[2]) startSlowBattle(); 
+    }
 }
-function comLogic(){
-    const h2=hands[2]; let pos=[]; h2.forEach(c=>pos.push([c]));
-    if(h2.includes('水')&&h2.includes('風')) pos.push(['水','風']);
-    if(h2.includes('火')&&h2.includes('風')&&h2.includes('土')) pos.push(['火','風','土']);
-    if(bannedStr) pos = pos.filter(p => p.join("+") !== bannedStr); p2D = pos[Math.floor(Math.random()*pos.length)]; confirmed[2]=!0; startSlowBattle();
+
+// --- 最強AIロジック (Super AI) ---
+function superAiLogic(){
+    const h2 = hands[2]; // AIの手札
+    // プレイヤーの手(p1D)に対して勝てる手を検索
+    let bestMove = null;
+    
+    // 全パターンの生成
+    let possibleMoves = [];
+    h2.forEach(c => possibleMoves.push([c])); // 単体
+    if(h2.includes('水')&&h2.includes('風')) possibleMoves.push(['水','風']); // 氷遁
+    if(h2.includes('火')&&h2.includes('風')&&h2.includes('土')) possibleMoves.push(['火','風','土']); // 塵遁
+    
+    if(bannedStr) possibleMoves = possibleMoves.filter(m => m.join("+") !== bannedStr);
+
+    // 勝利手を探索
+    for(let move of possibleMoves) {
+        if(isWin(move, p1D)) {
+            bestMove = move;
+            // コンボ（枚数が多い）なら即決
+            if(move.length > 1) break; 
+        }
+    }
+
+    // 勝てる手がないなら、あいこ(Draw)を探す
+    if(!bestMove){
+        for(let move of possibleMoves) {
+            if(isDraw(move, p1D)) { bestMove = move; break; }
+        }
+    }
+
+    // それもないなら、適当な手（先頭）
+    if(!bestMove) bestMove = possibleMoves[0];
+
+    p2D = bestMove;
+    confirmed[2]=!0; startSlowBattle();
 }
+
+// 勝敗判定補助関数
+function isWin(myHand, oppHand) {
+    if(myHand.length > oppHand.length) return true;
+    if(myHand.length < oppHand.length) return false;
+    // 枚数同じなら属性相性
+    if(myHand.length === 1) {
+        return rel[myHand[0]] === oppHand[0];
+    }
+    return false; // コンボ同士の相性は現状同等のためFalse（引き分け扱い）
+}
+function isDraw(myHand, oppHand) {
+    return myHand.join("+") === oppHand.join("+");
+}
+
+// --------------------------------
 
 function startSlowBattle(){
     document.getElementById('p1-hand').style.opacity='0'; document.getElementById('p2-hand').style.opacity='0'; document.getElementById('battle-center').style.opacity='0';
@@ -280,22 +351,17 @@ function startSlowBattle(){
 }
 function createClashContainer(cards, color){
     const box = document.createElement('div'); box.className = 'clash-container'; box.style.borderColor = color;
-    // 激突時もランクエフェクトを継承
+    // 激突時もランクエフェクトを表示
     const rankClass = getCardRankClass();
     if(rankClass) box.classList.add(rankClass);
     
     cards.forEach(t => { const img = document.createElement('img'); img.src = icons[t]; img.className = 'clash-img'; img.style.borderColor = color; box.appendChild(img); });
     return box;
 }
-
 function getLoseAnimClass(cards, loserP1) {
-    let type = cards[0];
-    if(cards.includes('火')) type='火';
-    if(cards.includes('風') && cards.length===2) type='水'; 
-    const suffix = loserP1 ? 'p1' : 'p2';
-    const map = { '火':'fire', '水':'water', '雷':'thunder', '土':'earth', '風':'wind' };
-    const effect = map[type] || 'fire';
-    return `anim-lose-${effect}-${suffix}`;
+    let type = cards[0]; if(cards.includes('火')) type='火'; if(cards.includes('風') && cards.length===2) type='水';
+    const suffix = loserP1 ? 'p1' : 'p2'; const map = { '火':'fire', '水':'water', '雷':'thunder', '土':'earth', '風':'wind' };
+    return `anim-lose-${map[type]||'fire'}-${suffix}`;
 }
 
 function resolveBattle(){
@@ -306,14 +372,11 @@ function resolveBattle(){
 
     const resText = document.getElementById('result-text');
     const layer = document.getElementById('anim-layer');
-    const c1 = layer.children[0];
-    const c2 = layer.children[1];
+    const c1 = layer.children[0]; const c2 = layer.children[1];
 
     c1.className = 'clash-container ' + getCardRankClass(); void c1.offsetWidth;
     c2.className = 'clash-container ' + getCardRankClass(); void c2.offsetWidth;
-    
-    c1.style.transform = 'translateY(65px) scale(1)';
-    c2.style.transform = 'translateY(-65px) rotate(180deg) scale(1)';
+    c1.style.transform = 'translateY(65px) scale(1)'; c2.style.transform = 'translateY(-65px) rotate(180deg) scale(1)';
 
     let nextAction = null;
     if(win!==0){
